@@ -5,6 +5,7 @@ var util = require('../../util/util');
 var loadGeometry = require('../load_geometry');
 var earcut = require('earcut');
 var classifyRings = require('../../util/classify_rings');
+var browser = require('../../util/browser');
 
 module.exports = FillBucket;
 
@@ -69,7 +70,12 @@ FillBucket.prototype.addPolygon = function(polygon) {
         }
     }
 
+    var start = browser.now();
     var triangleIndices = earcut(flattened, holeIndices);
+    var elapsed = browser.now() - start;
+    if (elapsed > 1000 && typeof console !== 'undefined') {
+        console.warn('slow earcut: ' + Math.round(elapsed) + 'ms ', this.id, this.sourceLayer);
+    }
 
     for (var i = 0; i < triangleIndices.length; i++) {
         group.layout.element.emplaceBack(triangleIndices[i] + startIndex);
