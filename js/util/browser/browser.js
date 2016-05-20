@@ -7,87 +7,87 @@
  * @private
  */
 
-exports.window = window;
-
 /**
  * Provides a function that outputs milliseconds: either performance.now()
  * or a fallback to Date.now()
  */
 module.exports.now = (function() {
-    if (window.performance &&
-        window.performance.now) {
-        return window.performance.now.bind(window.performance);
+    if (self.performance &&
+        self.performance.now) {
+        return self.performance.now.bind(self.performance);
     } else {
         return Date.now.bind(Date);
     }
 }());
 
-var frame = window.requestAnimationFrame ||
-    window.mozRequestAnimationFrame ||
-    window.webkitRequestAnimationFrame ||
-    window.msRequestAnimationFrame;
+if (typeof window !== 'undefined') {
+    var frame = window.requestAnimationFrame ||
+        window.mozRequestAnimationFrame ||
+        window.webkitRequestAnimationFrame ||
+        window.msRequestAnimationFrame;
 
-exports.frame = function(fn) {
-    return frame(fn);
-};
+    exports.frame = function(fn) {
+        return frame(fn);
+    };
 
-var cancel = window.cancelAnimationFrame ||
-    window.mozCancelAnimationFrame ||
-    window.webkitCancelAnimationFrame ||
-    window.msCancelAnimationFrame;
+    var cancel = window.cancelAnimationFrame ||
+        window.mozCancelAnimationFrame ||
+        window.webkitCancelAnimationFrame ||
+        window.msCancelAnimationFrame;
 
-exports.cancelFrame = function(id) {
-    cancel(id);
-};
+    exports.cancelFrame = function(id) {
+        cancel(id);
+    };
 
-exports.timed = function (fn, dur, ctx) {
-    if (!dur) {
-        fn.call(ctx, 1);
-        return null;
-    }
-
-    var abort = false,
-        start = module.exports.now();
-
-    function tick(now) {
-        if (abort) return;
-        now = module.exports.now();
-
-        if (now >= start + dur) {
+    exports.timed = function (fn, dur, ctx) {
+        if (!dur) {
             fn.call(ctx, 1);
-        } else {
-            fn.call(ctx, (now - start) / dur);
-            exports.frame(tick);
+            return null;
         }
-    }
 
-    exports.frame(tick);
+        var abort = false,
+            start = module.exports.now();
 
-    return function() { abort = true; };
-};
+        function tick(now) {
+            if (abort) return;
+            now = module.exports.now();
 
-/**
- * Test if the current browser supports Mapbox GL JS
- * @param {Object} options
- * @param {boolean} [options.failIfMajorPerformanceCaveat=false] Return `false`
- *   if the performance of Mapbox GL JS would be dramatically worse than
- *   expected (i.e. a software renderer would be used)
- * @return {boolean}
- */
-exports.supported = require('mapbox-gl-js-supported');
+            if (now >= start + dur) {
+                fn.call(ctx, 1);
+            } else {
+                fn.call(ctx, (now - start) / dur);
+                exports.frame(tick);
+            }
+        }
 
-exports.hardwareConcurrency = navigator.hardwareConcurrency || 8;
+        exports.frame(tick);
 
-Object.defineProperty(exports, 'devicePixelRatio', {
-    get: function() { return window.devicePixelRatio; }
-});
+        return function() { abort = true; };
+    };
 
-exports.supportsWebp = false;
+    /**
+     * Test if the current browser supports Mapbox GL JS
+     * @param {Object} options
+     * @param {boolean} [options.failIfMajorPerformanceCaveat=false] Return `false`
+     *   if the performance of Mapbox GL JS would be dramatically worse than
+     *   expected (i.e. a software renderer would be used)
+     * @return {boolean}
+     */
+    exports.supported = require('mapbox-gl-js-supported');
 
-var webpImgTest = document.createElement('img');
-webpImgTest.onload = function() {
-    exports.supportsWebp = true;
-};
-webpImgTest.src = 'data:image/webp;base64,UklGRh4AAABXRUJQVlA4TBEAAAAvAQAAAAfQ//73v/+BiOh/AAA=';
+    exports.hardwareConcurrency = navigator.hardwareConcurrency || 8;
 
-exports.supportsGeolocation = !!navigator.geolocation;
+    Object.defineProperty(exports, 'devicePixelRatio', {
+        get: function() { return window.devicePixelRatio; }
+    });
+
+    exports.supportsWebp = false;
+
+    var webpImgTest = document.createElement('img');
+    webpImgTest.onload = function() {
+        exports.supportsWebp = true;
+    };
+    webpImgTest.src = 'data:image/webp;base64,UklGRh4AAABXRUJQVlA4TBEAAAAvAQAAAAfQ//73v/+BiOh/AAA=';
+
+    exports.supportsGeolocation = !!navigator.geolocation;
+}

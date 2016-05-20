@@ -2,7 +2,6 @@
 
 var test = require('tap').test;
 var extend = require('../../../js/util/util').extend;
-var window = require('../../../js/util/browser').window;
 var Map = require('../../../js/ui/map');
 var Style = require('../../../js/style/style');
 var LngLat = require('../../../js/geo/lng_lat');
@@ -309,13 +308,12 @@ test('Map', function(t) {
             t.end();
         });
 
-
         t.test('listen to window resize event', function (t) {
+            global.window = {};
+
             window.addEventListener = function(type) {
                 if (type === 'resize') {
-                    //restore empty function not to mess with other tests
-                    window.addEventListener = function() {};
-
+                    delete global.window;
                     t.end();
                 }
             };
